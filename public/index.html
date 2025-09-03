@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ndola Homes | Find Your Dream Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/public/styles.css" rel="stylesheet">
+    <meta name="description" content="Discover your perfect home in Ndola. Browse real-time listings with photos, videos, and instant agent contact. Modern real estate platform.">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-home me-2"></i>Ndola Homes
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#listings">
+                        <i class="fas fa-list me-1"></i>Listings
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contact">
+                        <i class="fas fa-envelope me-1"></i>Contact
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin">
+                        <i class="fas fa-cog me-1"></i>Admin
+                    </a>
+                </li>
+            </ul>
+            <div class="d-flex">
+                <button id="savedBtn" class="btn btn-outline-primary btn-sm me-2">
+                    <i class="fas fa-heart me-1"></i>Saved
+                </button>
+                <a href="/admin" class="btn btn-primary btn-sm" id="listPropertyBtn">
+                    <i class="fas fa-plus me-1"></i>List Property
+                </a>
+            </div>
+        </div>
+    </div>
+    </nav>
+
+<header class="hero text-center text-white d-flex align-items-center">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="display-4 fw-bold mb-4">Find Your Dream Home in Ndola</h1>
+            <p class="lead mb-4">Discover premium properties with real-time listings, stunning photos, virtual tours, and instant agent contact.</p>
+            <div class="hero-stats d-flex justify-content-center gap-4 mb-4">
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-label">Properties</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">Agents</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Support</div>
+                </div>
+            </div>
+        </div>
+        <form id="searchForm" class="row g-3 justify-content-center">
+            <div class="col-12 col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="q" class="form-control form-control-lg" placeholder="Search by area, address, keyword">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <select id="type" class="form-select form-select-lg">
+                    <option value="">Any Type</option>
+                    <option value="rent">Rent</option>
+                    <option value="sale">Sale</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="input-group">
+                    <span class="input-group-text">ZMW</span>
+                <input type="number" id="minPrice" class="form-control form-control-lg" placeholder="Min Price">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="input-group">
+                    <span class="input-group-text">ZMW</span>
+                <input type="number" id="maxPrice" class="form-control form-control-lg" placeholder="Max Price">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-bed"></i></span>
+                <input type="number" id="bedrooms" class="form-control form-control-lg" placeholder="Bedrooms">
+            </div>
+            </div>
+            <div class="col-6 col-md-2 d-grid">
+                <button class="btn btn-primary btn-lg" type="submit">
+                    <i class="fas fa-search me-2"></i>Search
+                </button>
+            </div>
+            <div class="col-6 col-md-2 d-grid">
+                <button class="btn btn-outline-primary btn-lg" type="button" id="useLocationBtn">
+                    <i class="fas fa-location-crosshairs me-2"></i>Near me
+                </button>
+            </div>
+            <div class="col-6 col-md-2">
+                <select id="radius" class="form-select form-select-lg" aria-label="Radius">
+                    <option value="5">Within 5 km</option>
+                    <option value="10" selected>Within 10 km</option>
+                    <option value="25">Within 25 km</option>
+                    <option value="50">Within 50 km</option>
+                </select>
+            </div>
+        </form>
+        <div id="quickChips" class="d-flex justify-content-center flex-wrap gap-2 mt-4">
+            <span class="chip" data-type="rent">
+                <i class="fas fa-key me-1"></i>Rent
+            </span>
+            <span class="chip" data-type="sale">
+                <i class="fas fa-home me-1"></i>Sale
+            </span>
+            <span class="chip" data-bedrooms="1">
+                <i class="fas fa-bed me-1"></i>1+ Beds
+            </span>
+            <span class="chip" data-bedrooms="3">
+                <i class="fas fa-bed me-1"></i>3+ Beds
+            </span>
+            <span class="chip" data-maxprice="10000">
+                <i class="fas fa-dollar-sign me-1"></i>≤ ZMW 10k
+            </span>
+            <span class="chip" data-maxprice="5000">
+                <i class="fas fa-dollar-sign me-1"></i>≤ ZMW 5k
+            </span>
+        </div>
+    </div>
+</header>
+
+<main class="container my-5">
+    <div class="row">
+        <aside class="col-lg-3 mb-4">
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-broadcast-tower me-2 text-success"></i>
+                    <span>Live Updates</span>
+                </div>
+                <div class="card-body">
+                    <div id="liveFeed" class="small text-muted">
+                        <i class="fas fa-clock me-1"></i>Waiting for new listings…
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-chart-line me-2 text-primary"></i>
+                    <span>Market Insights</span>
+                </div>
+                <div class="card-body">
+                    <div class="insight-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="small">Avg. Rent Price</span>
+                            <strong class="text-primary">ZMW 8,500</strong>
+                        </div>
+                    </div>
+                    <div class="insight-item mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span class="small">Avg. Sale Price</span>
+                            <strong class="text-success">ZMW 450,000</strong>
+                        </div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="small">New Listings Today</span>
+                            <strong class="text-warning">12</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <section class="col-lg-9">
+            <div id="resultsMeta" class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 id="listings" class="h4 m-0">
+                        <i class="fas fa-star me-2 text-warning"></i>Featured Listings
+                    </h2>
+                    <p class="text-muted small mb-0">Discover your perfect home from our curated selection</p>
+                </div>
+                <div class="text-end">
+                    <span id="totalCount" class="badge bg-primary fs-6"></span>
+                </div>
+            </div>
+            <div id="cards" class="row g-4"></div>
+        </section>
+    </div>
+
+    <section id="contact" class="mt-5">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <i class="fas fa-envelope me-2 text-primary"></i>
+                <span>Get In Touch</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-8">
+                <form id="contactForm" class="row g-3">
+                    <div class="col-md-6">
+                                <label class="form-label">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input class="form-control" id="contactName" placeholder="Your Name" required>
+                                </div>
+                    </div>
+                    <div class="col-md-6">
+                                <label class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        <input class="form-control" id="contactEmail" placeholder="Email" type="email" required>
+                                </div>
+                    </div>
+                    <div class="col-md-6">
+                                <label class="form-label">Phone Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                        <input class="form-control" id="contactPhone" placeholder="Phone (optional)">
+                    </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Subject</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                    <select class="form-select" id="contactSubject">
+                                        <option value="general">General Inquiry</option>
+                                        <option value="property">Property Inquiry</option>
+                                        <option value="support">Support</option>
+                                        <option value="feedback">Feedback</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Message</label>
+                                <textarea class="form-control" id="contactMessage" placeholder="Tell us how we can help you..." rows="4" required></textarea>
+                    </div>
+                    <div class="col-12">
+                                <button class="btn btn-primary btn-lg" type="submit">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Message
+                                </button>
+                                <span id="contactStatus" class="ms-3 small"></span>
+                    </div>
+                </form>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="contact-info">
+                            <h5 class="mb-3">Contact Information</h5>
+                            <div class="info-item mb-3">
+                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                <span>Ndola, Copperbelt Province, Zambia</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <i class="fas fa-phone text-primary me-2"></i>
+                                <span>+260 212 123 456</span>
+                            </div>
+                            <div class="info-item mb-3">
+                                <i class="fas fa-envelope text-primary me-2"></i>
+                                <span>info@ndolahomes.com</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <span>Mon - Fri: 8:00 AM - 6:00 PM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="py-5" id="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <h5 class="text-white mb-3">
+                    <i class="fas fa-home me-2"></i>Ndola Homes
+                </h5>
+                <p class="text-light">Your trusted partner in finding the perfect home in Ndola. We connect you with premium properties and expert agents.</p>
+                <div class="social-links">
+                    <a href="#" class="text-light me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-light me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-light me-3"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-light"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-2 mb-4">
+                <h6 class="text-white mb-3">Quick Links</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-light text-decoration-none">Home</a></li>
+                    <li><a href="#listings" class="text-light text-decoration-none">Listings</a></li>
+                    <li><a href="#contact" class="text-light text-decoration-none">Contact</a></li>
+                    <li><a href="/admin" class="text-light text-decoration-none">Admin</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <h6 class="text-white mb-3">Services</h6>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-light text-decoration-none">Property Sales</a></li>
+                    <li><a href="#" class="text-light text-decoration-none">Rental Properties</a></li>
+                    <li><a href="#" class="text-light text-decoration-none">Property Management</a></li>
+                    <li><a href="#" class="text-light text-decoration-none">Market Analysis</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <h6 class="text-white mb-3">Contact Info</h6>
+                <div class="contact-item mb-2">
+                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                    <span class="text-light">Ndola, Zambia</span>
+                </div>
+                <div class="contact-item mb-2">
+                    <i class="fas fa-phone text-primary me-2"></i>
+                    <span class="text-light">+260 212 123 456</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-envelope text-primary me-2"></i>
+                    <span class="text-light">info@ndolahomes.com</span>
+                </div>
+            </div>
+        </div>
+        <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="text-light mb-0">&copy; <span id="year"></span> Ndola Homes. All rights reserved.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="/privacy" class="text-light text-decoration-none me-3">Privacy Policy</a>
+                <a href="/terms" class="text-light text-decoration-none">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+    </footer>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2d9qQ5H0dVqB3mQX8EwZ8yXh/1Vd6kK0mA3Wqz3oTmm3kEc9M9g1hJQy3R6HqfJk" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const api = (path, params) => fetch(path + (params ? ('?' + new URLSearchParams(params)) : ''));
+const cards = document.getElementById('cards');
+const totalCount = document.getElementById('totalCount');
+const year = document.getElementById('year');
+year.textContent = new Date().getFullYear();
+
+// Smooth scroll for in-page links
+document.querySelectorAll('a.nav-link[href^="#"]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// Saved button opens a simple modal with favorited IDs
+document.getElementById('savedBtn').addEventListener('click', () => {
+  const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+  const html = `
+    <div class='modal fade' id='savedModal' tabindex='-1'>
+      <div class='modal-dialog'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <h5 class='modal-title'><i class="fas fa-heart text-danger me-2"></i>Saved Properties</h5>
+            <button type='button' class='btn-close' data-bs-dismiss='modal'></button>
+          </div>
+          <div class='modal-body'>
+            ${favorites.length ? `<p class='mb-2'>You have saved ${favorites.length} propert${favorites.length>1?'ies':'y'}.</p>` : '<p class="text-muted mb-0">No saved properties yet.</p>'}
+            ${favorites.length ? '<div class="small text-muted">Open a listing and click the heart to toggle.</div>' : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  document.body.appendChild(wrapper);
+  const modal = new bootstrap.Modal(wrapper.querySelector('#savedModal'));
+  modal.show();
+  wrapper.addEventListener('hidden.bs.modal', () => wrapper.remove());
+});
+
+// Gate listing creation behind login (client-side hint)
+document.getElementById('listPropertyBtn').addEventListener('click', (e) => {
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    e.preventDefault();
+    showAuthModal();
+  }
+});
+
+function skeletonCards(count=6){
+  cards.innerHTML = '';
+  for(let i=0;i<count;i++){
+    const col = document.createElement('div');
+    col.className = 'col-12 col-sm-6 col-lg-4';
+    col.innerHTML = `
+      <div class="card h-100">
+        <div class="skeleton skeleton-thumb"></div>
+        <div class="card-body">
+          <div class="skeleton skeleton-line" style="width:70%"></div>
+          <div class="skeleton skeleton-line" style="width:50%"></div>
+          <div class="skeleton skeleton-line" style="width:40%"></div>
+        </div>
+      </div>`;
+    cards.appendChild(col);
+  }
+}
+
+function renderListings(items){
+  cards.innerHTML = '';
+  items.forEach(item => {
+    const media = item.media || [];
+    const thumb = item.thumbnail_url || (media[0] ? media[0].url : '');
+    const col = document.createElement('div');
+    col.className = 'col-12 col-sm-6 col-lg-4';
+    col.innerHTML = `
+      <div class="card h-100">
+        ${thumb ? `<img src="${thumb}" class="card-img-top" alt="${item.title}">` : ''}
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">${item.title}</h5>
+          <p class="card-text small text-muted mb-1">${item.city}${item.area ? ', ' + item.area : ''}</p>
+          <p class="card-text price">ZMW ${Number(item.price).toLocaleString()} <span class="badge-soft badge rounded-pill text-uppercase">${item.type}</span></p>
+          <div class="mb-2">
+            ${item.bedrooms ? `<span class='pill'>${item.bedrooms} bed${item.bedrooms>1?'s':''}</span>` : ''}
+            ${item.bathrooms ? `<span class='pill'>${item.bathrooms} bath${item.bathrooms>1?'s':''}</span>` : ''}
+          </div>
+          <div class="mt-auto d-flex justify-content-between align-items-center">
+            <a class="btn btn-outline-primary btn-sm" href="#" data-id="${item.id}" onclick="viewDetails(${item.id});return false;">
+              <i class="fas fa-eye me-1"></i>View Details
+            </a>
+            <button class="btn btn-outline-danger btn-sm" onclick="toggleFavorite(${item.id})" title="Add to favorites">
+              <i class="fas fa-heart"></i>
+            </button>
+          </div>
+        </div>
+      </div>`;
+    cards.appendChild(col);
+  });
+}
+
+async function loadListings(params){
+  skeletonCards();
+  const res = await api('/api/listings', params);
+  const data = await res.json();
+  totalCount.textContent = data.total + ' properties found';
+  renderListings(data.items);
+}
+
+async function viewDetails(id){
+  const res = await fetch('/api/listings/' + id);
+  const item = await res.json();
+  const media = item.media || [];
+  const gallery = media.map(m => m.kind === 'video' ? `<video controls class='w-100 my-1'><source src='${m.url}'></video>` : `<img class='img-fluid my-1' src='${m.url}'>`).join('');
+  const html = `
+    <div class='modal fade' id='listingModal' tabindex='-1'>
+      <div class='modal-dialog modal-lg modal-dialog-scrollable'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <h5 class='modal-title'>${item.title}</h5>
+            <button type='button' class='btn-close' data-bs-dismiss='modal'></button>
+          </div>
+          <div class='modal-body'>
+            <div class='row'>
+              <div class='col-md-7'>
+                <p class='text-muted mb-1'>${item.city}${item.area ? ', ' + item.area : ''}</p>
+                <p class='h5 text-primary mb-3'>ZMW ${Number(item.price).toLocaleString()} <span class='badge bg-light text-uppercase text-primary ms-2'>${item.type}</span></p>
+                <p class='mb-3'><i class="fas fa-map-marker-alt me-2 text-primary"></i>${item.address || 'Address not provided'}</p>
+            <p>${item.description}</p>
+                <div class='d-flex gap-2 mb-3'>
+                  ${item.bedrooms ? `<span class='pill'><i class="fas fa-bed me-1"></i>${item.bedrooms} Bed${item.bedrooms>1?'s':''}</span>` : ''}
+                  ${item.bathrooms ? `<span class='pill'><i class="fas fa-bath me-1"></i>${item.bathrooms} Bath${item.bathrooms>1?'s':''}</span>` : ''}
+                </div>
+            ${gallery}
+              </div>
+              <div class='col-md-5'>
+                <div class='card'>
+                  <div class='card-header d-flex align-items-center'>
+                    <i class='fas fa-user me-2 text-primary'></i><span>Owner / Agent</span>
+                  </div>
+                  <div class='card-body'>
+                    <p class='mb-2'><strong>${item.owner_name || 'N/A'}</strong></p>
+                    <p class='mb-2'><i class='fas fa-envelope me-2 text-primary'></i>${item.owner_email || 'N/A'}</p>
+                    <p class='mb-3'><i class='fas fa-phone me-2 text-primary'></i>${item.owner_phone || 'N/A'}</p>
+                    <div class='d-grid gap-2'>
+                      ${item.owner_phone ? `<a class='btn btn-success' href='tel:${item.owner_phone}'>
+                        <i class="fas fa-phone me-2"></i>Call Owner
+                      </a>` : ''}
+                      ${item.owner_email ? `<a class='btn btn-outline-primary' href='mailto:${item.owner_email}?subject=${'Inquiry about: ' + item.title}'>
+                        <i class="fas fa-envelope me-2"></i>Email Owner
+                      </a>` : ''}
+                      ${item.owner_phone ? `<a class='btn btn-outline-success' target='_blank' rel='noopener' href='https://wa.me/${encodeURIComponent(item.owner_phone.replace(/[^\d+]/g, ''))}?text=${encodeURIComponent('Hello, I am interested in ' + item.title)}'>
+                        <i class="fab fa-whatsapp me-2"></i>WhatsApp
+                      </a>` : ''}
+                      <button class='btn btn-primary' onclick="contactOwner(${item.id})"><i class='fas fa-paper-plane me-2'></i>Send quick message</button>
+                    </div>
+                  </div>
+                </div>
+                ${item.latitude && item.longitude ? `
+                <div class='mt-3'>
+                  <a class='btn btn-outline-primary w-100' target='_blank' rel='noopener' href='https://www.google.com/maps?q=${item.latitude},${item.longitude}'>
+                    <i class='fas fa-location-dot me-2'></i>Open in Google Maps
+                  </a>
+                </div>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  document.body.appendChild(wrapper);
+  const modal = new bootstrap.Modal(wrapper.querySelector('#listingModal'));
+  modal.show();
+  wrapper.addEventListener('hidden.bs.modal', () => wrapper.remove());
+}
+
+function contactOwner(listingId){
+  const token = localStorage.getItem('auth_token');
+  if (!token) { showAuthModal(); return; }
+  const name = prompt('Your name:');
+  if (!name) return;
+  const email = prompt('Your email:');
+  if (!email) return;
+  const phone = prompt('Your phone (optional):') || '';
+  const message = prompt('Your message:');
+  if (!message) return;
+  fetch('/api/contact',{ method:'POST', headers:{'Content-Type':'application/json','Authorization': 'Bearer ' + token}, body: JSON.stringify({ name, email, phone, message, listingId }) })
+  .then(r=>{
+    showNotification(r.ok ? 'Message sent to owner.' : 'Failed to send message.', r.ok ? 'success' : 'danger');
+  }).catch(()=>showNotification('Network error sending message.', 'danger'));
+}
+
+document.getElementById('searchForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const params = {
+    q: document.getElementById('q').value,
+    type: document.getElementById('type').value,
+    minPrice: document.getElementById('minPrice').value,
+    maxPrice: document.getElementById('maxPrice').value,
+    bedrooms: document.getElementById('bedrooms').value
+  };
+  if (window.__geo) {
+    params.latitude = window.__geo.latitude;
+    params.longitude = window.__geo.longitude;
+    params.radiusKm = document.getElementById('radius').value;
+  }
+  loadListings(params);
+});
+
+// Quick filter chips
+const chips = document.querySelectorAll('#quickChips .chip');
+let chipState = { type:'', bedrooms:'', maxPrice:'' };
+chips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    const t = chip.getAttribute('data-type');
+    const b = chip.getAttribute('data-bedrooms');
+    const m = chip.getAttribute('data-maxprice');
+    if (t !== null){
+      chipState.type = (chipState.type === t) ? '' : t;
+      // toggle active class among type chips
+      document.querySelectorAll('[data-type]').forEach(c => c.classList.toggle('active', c.getAttribute('data-type')===chipState.type && chipState.type!=='') );
+    }
+    if (b !== null){
+      chipState.bedrooms = (chipState.bedrooms === b) ? '' : b;
+      document.querySelectorAll('[data-bedrooms]').forEach(c => c.classList.toggle('active', c.getAttribute('data-bedrooms')===chipState.bedrooms && chipState.bedrooms!=='') );
+    }
+    if (m !== null){
+      chipState.maxPrice = (chipState.maxPrice === m) ? '' : m;
+      document.querySelectorAll('[data-maxprice]').forEach(c => c.classList.toggle('active', c.getAttribute('data-maxprice')===chipState.maxPrice && chipState.maxPrice!=='') );
+    }
+    // reflect in form inputs
+    document.getElementById('type').value = chipState.type;
+    document.getElementById('bedrooms').value = chipState.bedrooms;
+    document.getElementById('maxPrice').value = chipState.maxPrice;
+    const params = {
+      q: document.getElementById('q').value,
+      type: chipState.type,
+      minPrice: document.getElementById('minPrice').value,
+      maxPrice: chipState.maxPrice,
+      bedrooms: chipState.bedrooms
+    };
+    if (window.__geo) {
+      params.latitude = window.__geo.latitude;
+      params.longitude = window.__geo.longitude;
+      params.radiusKm = document.getElementById('radius').value;
+    }
+    loadListings(params);
+  });
+});
+
+document.getElementById('contactForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const status = document.getElementById('contactStatus');
+  status.textContent = 'Sending...';
+  const res = await fetch('/api/contact',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      name: document.getElementById('contactName').value,
+      email: document.getElementById('contactEmail').value,
+      phone: document.getElementById('contactPhone').value,
+      message: document.getElementById('contactMessage').value
+    })
+  });
+  status.textContent = res.ok ? 'We will get back to you shortly.' : 'Failed to send. Please try again.';
+});
+
+skeletonCards();
+loadListings();
+
+const socket = io();
+const liveFeed = document.getElementById('liveFeed');
+// Add favorite functionality
+function toggleFavorite(id) {
+  const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+  const index = favorites.indexOf(id);
+  
+  if (index > -1) {
+    favorites.splice(index, 1);
+    showNotification('Removed from favorites', 'info');
+  } else {
+    favorites.push(id);
+    showNotification('Added to favorites', 'success');
+  }
+  
+  localStorage.setItem('favorites', JSON.stringify(favorites));
+  updateFavoriteButtons();
+}
+
+function updateFavoriteButtons() {
+  const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+  document.querySelectorAll('[onclick*="toggleFavorite"]').forEach(btn => {
+    const id = parseInt(btn.getAttribute('onclick').match(/\d+/)[0]);
+    const icon = btn.querySelector('i');
+    if (favorites.includes(id)) {
+      icon.classList.remove('far');
+      icon.classList.add('fas');
+      btn.classList.remove('btn-outline-danger');
+      btn.classList.add('btn-danger');
+    } else {
+      icon.classList.remove('fas');
+      icon.classList.add('far');
+      btn.classList.remove('btn-danger');
+      btn.classList.add('btn-outline-danger');
+    }
+  });
+}
+
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+  notification.style.cssText = 'top: 100px; right: 20px; z-index: 9999; min-width: 300px;';
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.remove();
+    }
+  }, 3000);
+}
+
+socket.on('listing:new', (payload)=>{
+  liveFeed.innerHTML = '<i class="fas fa-bell me-1"></i>New listing added! Click search to refresh.';
+  showNotification('New property listing available!', 'success');
+});
+
+// "Near me" location button
+const useLocationBtn = document.getElementById('useLocationBtn');
+if (useLocationBtn) {
+  useLocationBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      showNotification('Geolocation is not supported by your browser.', 'warning');
+      return;
+    }
+    const prev = useLocationBtn.innerHTML;
+    useLocationBtn.disabled = true;
+    useLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Locating...';
+    navigator.geolocation.getCurrentPosition((pos)=>{
+      window.__geo = { latitude: pos.coords.latitude.toFixed(6), longitude: pos.coords.longitude.toFixed(6) };
+      showNotification('Using your location for nearby listings.', 'success');
+      useLocationBtn.disabled = false;
+      useLocationBtn.innerHTML = prev;
+      document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+    }, (err)=>{
+      showNotification('Failed to get location: ' + err.message, 'danger');
+      useLocationBtn.disabled = false;
+      useLocationBtn.innerHTML = prev;
+    }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
+  });
+}
+
+// Simple Auth modal (login/register)
+function showAuthModal(){
+  const html = `
+    <div class='modal fade' id='authModal' tabindex='-1'>
+      <div class='modal-dialog'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <h5 class='modal-title'>Sign in to continue</h5>
+            <button type='button' class='btn-close' data-bs-dismiss='modal'></button>
+          </div>
+          <div class='modal-body'>
+            <ul class="nav nav-tabs" id="authTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#loginPane" type="button" role="tab">Login</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#registerPane" type="button" role="tab">Register</button>
+              </li>
+            </ul>
+            <div class="tab-content pt-3">
+              <div class="tab-pane fade show active" id="loginPane" role="tabpanel">
+                <div class="mb-3"><input id="loginEmail" class="form-control" type="email" placeholder="Email"></div>
+                <div class="mb-3"><input id="loginPassword" class="form-control" type="password" placeholder="Password"></div>
+                <button id="loginBtn" class="btn btn-primary w-100">Login</button>
+              </div>
+              <div class="tab-pane fade" id="registerPane" role="tabpanel">
+                <div class="mb-3"><input id="regName" class="form-control" placeholder="Full name"></div>
+                <div class="mb-3"><input id="regEmail" class="form-control" type="email" placeholder="Email"></div>
+                <div class="mb-3"><input id="regPassword" class="form-control" type="password" placeholder="Password (min 6 chars)"></div>
+                <button id="registerBtn" class="btn btn-success w-100">Create account</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = html;
+  document.body.appendChild(wrapper);
+  const modal = new bootstrap.Modal(wrapper.querySelector('#authModal'));
+  modal.show();
+  wrapper.addEventListener('hidden.bs.modal', () => wrapper.remove());
+
+  wrapper.querySelector('#loginBtn').addEventListener('click', async ()=>{
+    const email = wrapper.querySelector('#loginEmail').value;
+    const password = wrapper.querySelector('#loginPassword').value;
+    const res = await fetch('/api/auth/login',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password })});
+    if (res.ok){
+      const data = await res.json();
+      localStorage.setItem('auth_token', data.token);
+      showNotification('Logged in successfully','success');
+      modal.hide();
+    } else {
+      showNotification('Login failed','danger');
+    }
+  });
+  wrapper.querySelector('#registerBtn').addEventListener('click', async ()=>{
+    const name = wrapper.querySelector('#regName').value;
+    const email = wrapper.querySelector('#regEmail').value;
+    const password = wrapper.querySelector('#regPassword').value;
+    const res = await fetch('/api/auth/register',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, email, password })});
+    if (res.ok){
+      const data = await res.json();
+      localStorage.setItem('auth_token', data.token);
+      showNotification('Account created and logged in','success');
+      modal.hide();
+    } else {
+      showNotification('Registration failed','danger');
+    }
+  });
+}
+</script>
+</body>
+</html>
+
+
