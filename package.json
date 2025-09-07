@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "import:csv": "node scripts/data-import.js csv",
+    "import:json": "node scripts/data-import.js json",
+    "clear:demo": "node scripts/data-import.js clear",
+    "scrape": "node scripts/web-scraper.js scrape",
+    "scrape:import": "node scripts/web-scraper.js import"
   },
   "keywords": [
     "real-estate",
@@ -19,13 +24,17 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.11.0",
     "bcryptjs": "^2.4.3",
+    "cheerio": "^1.1.2",
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-validator": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.6",
     "socket.io": "^4.7.5",
     "sqlite3": "^5.1.7"
   },

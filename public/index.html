@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ndola Homes | Find Your Dream Home</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="/public/styles.css" rel="stylesheet">
+    <title>Ndola Homes | Real Estate in Ndola, Zambia</title>
+  <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
+  <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="/public/styles.css" rel="stylesheet">
     <meta name="description" content="Discover your perfect home in Ndola. Browse real-time listings with photos, videos, and instant agent contact. Modern real estate platform.">
 </head>
 <body>
@@ -428,18 +430,30 @@ function renderListings(items){
   items.forEach(item => {
     const media = item.media || [];
     const thumb = item.thumbnail_url || (media[0] ? media[0].url : '');
+    const isRent = item.type === 'rent';
+    const typeClass = isRent ? 'card-rent' : 'card-sale';
+    const priceClass = isRent ? 'price-rent' : 'price-sale';
+    const badgeClass = isRent ? 'property-type-rent' : 'property-type-sale';
+    const typeIcon = isRent ? 'fas fa-key' : 'fas fa-home';
+    const priceLabel = isRent ? '/month' : '';
+    
     const col = document.createElement('div');
     col.className = 'col-12 col-sm-6 col-lg-4';
     col.innerHTML = `
-      <div class="card h-100">
+      <div class="card h-100 ${typeClass}">
         ${thumb ? `<img src="${thumb}" class="card-img-top" alt="${item.title}">` : ''}
         <div class="card-body d-flex flex-column">
           <h5 class="card-title">${item.title}</h5>
-          <p class="card-text small text-muted mb-1">${item.city}${item.area ? ', ' + item.area : ''}</p>
-          <p class="card-text price">ZMW ${Number(item.price).toLocaleString()} <span class="badge-soft badge rounded-pill text-uppercase">${item.type}</span></p>
+          <p class="card-text small text-muted mb-1">
+            <i class="fas fa-map-marker-alt me-1"></i>${item.city}${item.area ? ', ' + item.area : ''}
+          </p>
+          <p class="card-text price ${priceClass}">
+            <i class="${typeIcon} me-2"></i>ZMW ${Number(item.price).toLocaleString()}${priceLabel}
+            <span class="badge ${badgeClass} rounded-pill ms-2">${item.type.toUpperCase()}</span>
+          </p>
           <div class="mb-2">
-            ${item.bedrooms ? `<span class='pill'>${item.bedrooms} bed${item.bedrooms>1?'s':''}</span>` : ''}
-            ${item.bathrooms ? `<span class='pill'>${item.bathrooms} bath${item.bathrooms>1?'s':''}</span>` : ''}
+            ${item.bedrooms ? `<span class='pill'><i class="fas fa-bed me-1"></i>${item.bedrooms} bed${item.bedrooms>1?'s':''}</span>` : ''}
+            ${item.bathrooms ? `<span class='pill'><i class="fas fa-bath me-1"></i>${item.bathrooms} bath${item.bathrooms>1?'s':''}</span>` : ''}
           </div>
           <div class="mt-auto d-flex justify-content-between align-items-center">
             <a class="btn btn-outline-primary btn-sm" href="#" data-id="${item.id}" onclick="viewDetails(${item.id});return false;">
@@ -468,19 +482,33 @@ async function viewDetails(id){
   const item = await res.json();
   const media = item.media || [];
   const gallery = media.map(m => m.kind === 'video' ? `<video controls class='w-100 my-1'><source src='${m.url}'></video>` : `<img class='img-fluid my-1' src='${m.url}'>`).join('');
+  
+  const isRent = item.type === 'rent';
+  const priceClass = isRent ? 'price-rent' : 'price-sale';
+  const badgeClass = isRent ? 'property-type-rent' : 'property-type-sale';
+  const typeIcon = isRent ? 'fas fa-key' : 'fas fa-home';
+  const priceLabel = isRent ? '/month' : '';
+  
   const html = `
     <div class='modal fade' id='listingModal' tabindex='-1'>
       <div class='modal-dialog modal-lg modal-dialog-scrollable'>
         <div class='modal-content'>
           <div class='modal-header'>
-            <h5 class='modal-title'>${item.title}</h5>
+            <h5 class='modal-title'>
+              <i class="${typeIcon} me-2"></i>${item.title}
+            </h5>
             <button type='button' class='btn-close' data-bs-dismiss='modal'></button>
           </div>
           <div class='modal-body'>
             <div class='row'>
               <div class='col-md-7'>
-                <p class='text-muted mb-1'>${item.city}${item.area ? ', ' + item.area : ''}</p>
-                <p class='h5 text-primary mb-3'>ZMW ${Number(item.price).toLocaleString()} <span class='badge bg-light text-uppercase text-primary ms-2'>${item.type}</span></p>
+                <p class='text-muted mb-1'>
+                  <i class="fas fa-map-marker-alt me-1"></i>${item.city}${item.area ? ', ' + item.area : ''}
+                </p>
+                <p class='h5 ${priceClass} mb-3'>
+                  <i class="${typeIcon} me-2"></i>ZMW ${Number(item.price).toLocaleString()}${priceLabel}
+                  <span class='badge ${badgeClass} ms-2'>${item.type.toUpperCase()}</span>
+                </p>
                 <p class='mb-3'><i class="fas fa-map-marker-alt me-2 text-primary"></i>${item.address || 'Address not provided'}</p>
             <p>${item.description}</p>
                 <div class='d-flex gap-2 mb-3'>
@@ -697,17 +725,135 @@ if (useLocationBtn) {
     useLocationBtn.disabled = true;
     useLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Locating...';
     navigator.geolocation.getCurrentPosition((pos)=>{
-      window.__geo = { latitude: pos.coords.latitude.toFixed(6), longitude: pos.coords.longitude.toFixed(6) };
-      showNotification('Using your location for nearby listings.', 'success');
+      const userLat = pos.coords.latitude;
+      const userLon = pos.coords.longitude;
+      
+      // Store user location
+      window.__geo = { latitude: userLat.toFixed(6), longitude: userLon.toFixed(6) };
+      
+      // Clear search form and set location-based search
+      document.getElementById('searchQuery').value = '';
+      document.getElementById('typeFilter').value = '';
+      document.getElementById('minPrice').value = '';
+      document.getElementById('maxPrice').value = '';
+      document.getElementById('bedroomsFilter').value = '';
+      
+      // Load nearby properties (within 10km radius)
+      loadNearbyProperties(userLat, userLon, 10);
+      
+      showNotification(`Found properties within 10km of your location`, 'success');
       useLocationBtn.disabled = false;
       useLocationBtn.innerHTML = prev;
-      document.getElementById('searchForm').dispatchEvent(new Event('submit'));
     }, (err)=>{
       showNotification('Failed to get location: ' + err.message, 'danger');
       useLocationBtn.disabled = false;
       useLocationBtn.innerHTML = prev;
     }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 });
   });
+}
+
+// Load properties near user's location
+async function loadNearbyProperties(userLat, userLon, radiusKm) {
+  try {
+    const params = new URLSearchParams({
+      latitude: userLat,
+      longitude: userLon,
+      radiusKm: radiusKm,
+      limit: 50
+    });
+    
+    const response = await fetch(`/api/listings?${params}`);
+    if (!response.ok) throw new Error('Failed to fetch nearby properties');
+    
+    const data = await response.json();
+    const properties = data.items || [];
+    
+    if (properties.length === 0) {
+      showNotification('No properties found within 10km. Showing all Ndola properties.', 'info');
+      loadListings(); // Fall back to all listings
+      return;
+    }
+    
+    // Calculate distances and sort by proximity
+    const propertiesWithDistance = properties.map(property => {
+      if (property.latitude && property.longitude) {
+        const distance = calculateDistance(userLat, userLon, property.latitude, property.longitude);
+        return { ...property, distance: distance };
+      }
+      return { ...property, distance: null };
+    }).sort((a, b) => {
+      if (a.distance === null) return 1;
+      if (b.distance === null) return -1;
+      return a.distance - b.distance;
+    });
+    
+    displayProperties(propertiesWithDistance, true); // true indicates showing distances
+    
+  } catch (error) {
+    console.error('Error loading nearby properties:', error);
+    showNotification('Error loading nearby properties. Showing all listings.', 'warning');
+    loadListings();
+  }
+}
+
+// Calculate distance between two coordinates (Haversine formula)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Distance in kilometers
+}
+
+// Enhanced display function to show distances
+function displayProperties(properties, showDistance = false) {
+  const container = document.getElementById('listingsContainer');
+  if (!properties.length) {
+    container.innerHTML = '<div class="col-12 text-center"><p class="text-muted">No properties found matching your criteria.</p></div>';
+    return;
+  }
+  
+  container.innerHTML = properties.map(property => {
+    const distanceText = showDistance && property.distance !== null 
+      ? `<small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i>${property.distance.toFixed(1)}km away</small>` 
+      : '';
+    
+    return `
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card property-card h-100">
+          ${property.thumbnail_url ? `<img src="${property.thumbnail_url}" class="card-img-top" alt="${property.title}">` : '<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;"><i class="fas fa-home fa-3x text-muted"></i></div>'}
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="badge bg-${property.type === 'rent' ? 'success' : 'primary'}">${property.type === 'rent' ? 'For Rent' : 'For Sale'}</span>
+              <button class="btn btn-sm btn-outline-danger" onclick="toggleFavorite(${property.id})">
+                <i class="far fa-heart"></i>
+              </button>
+            </div>
+            <h5 class="card-title">${property.title}</h5>
+            <p class="card-text text-muted small flex-grow-1">${property.description.substring(0, 100)}...</p>
+            <div class="mb-2">
+              <strong class="text-primary fs-5">ZMW ${property.price.toLocaleString()}</strong>
+              ${property.type === 'rent' ? '<small class="text-muted">/month</small>' : ''}
+            </div>
+            <div class="d-flex justify-content-between text-muted small mb-2">
+              <span><i class="fas fa-bed me-1"></i>${property.bedrooms || 0} beds</span>
+              <span><i class="fas fa-bath me-1"></i>${property.bathrooms || 0} baths</span>
+              <span><i class="fas fa-map-marker-alt me-1"></i>${property.area || property.city}</span>
+            </div>
+            ${distanceText}
+            <div class="mt-auto">
+              <button class="btn btn-primary w-100" onclick="viewProperty(${property.id})">
+                <i class="fas fa-eye me-2"></i>View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // Simple Auth modal (login/register)

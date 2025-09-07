@@ -1,0 +1,6 @@
+title,description,price,type,bedrooms,bathrooms,area,address,owner_name,owner_email,owner_phone,latitude,longitude
+"Modern 4BR House in Kansenshi","Beautiful 4-bedroom house with modern finishes, secure parking, and large garden. Perfect for families.",2500000,sale,4,3,"Kansenshi","Plot 1234 Kansenshi Road","John Mwanza","john.mwanza@gmail.com","+260977123456",-12.9900,28.6500
+"3BR Apartment Near Levy Mall","Spacious 3-bedroom apartment with parking, 24/7 security, walking distance to Levy Mall",7000,rent,3,2,"Town Centre","Flat 5B, Levy Junction Apartments","Sarah Banda","sarah.banda@yahoo.com","+260966789012",-12.9667,28.6333
+"Executive 5BR Mansion","Luxury 5-bedroom mansion with swimming pool, servant quarters, and double garage in upmarket area",4500000,sale,5,4,"Northrise","House 567 Northrise Estate","Michael Phiri","m.phiri@outlook.com","+260955234567",-12.9500,28.6200
+"Affordable 2BR Flat","Clean 2-bedroom flat ideal for young professionals, includes water and electricity",4500,rent,2,1,"Masala","Block C, Masala Flats","Grace Tembo","grace.tembo@gmail.com","+260971345678",-12.9700,28.6400
+"Commercial Plot CBD","Prime commercial plot in Central Business District, perfect for office development",8000000,sale,0,0,"CBD","Plot 890 Independence Avenue","David Mulenga","d.mulenga@business.zm","+260979456789",-12.9580,28.6367

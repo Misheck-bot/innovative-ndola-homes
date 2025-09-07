@@ -8,6 +8,7 @@ const cors = require('cors');
 const { body, validationResult, query } = require('express-validator');
 const multer = require('multer');
 const sqlite3 = require('sqlite3').verbose();
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
@@ -22,6 +23,57 @@ fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const db = new sqlite3.Database(DB_FILE);
+
+// Email configuration
+const emailTransporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port: process.env.EMAIL_PORT || 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Function to send contact email
+async function sendContactEmail(contactData) {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('Email credentials not configured. Skipping email send.');
+    return;
+  }
+
+  const { name, email, phone, message, listingId } = contactData;
+  
+  let subject = 'New Contact Form Submission - Ndola Homes';
+  let htmlContent = `
+    <h2>New Contact Form Submission</h2>
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ''}
+    <p><strong>Message:</strong></p>
+    <p>${message.replace(/\n/g, '<br>')}</p>
+  `;
+
+  if (listingId) {
+    subject = `Property Inquiry - Ndola Homes (Listing #${listingId})`;
+    htmlContent += `<p><strong>Property ID:</strong> ${listingId}</p>`;
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    to: process.env.EMAIL_TO || 'misheckmwamba99@gmail.com',
+    subject: subject,
+    html: htmlContent,
+    replyTo: email
+  };
+
+  try {
+    await emailTransporter.sendMail(mailOptions);
+    console.log('Contact email sent successfully');
+  } catch (error) {
+    console.error('Error sending contact email:', error.message);
+  }
+}
 
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS listings (
@@ -140,6 +192,26 @@ app.post('/api/auth/login', [
   });
 });
 
+// Admin registration endpoint - creates users with admin role
+app.post('/api/auth/register-admin', [
+  body('name').isString().isLength({min:2}),
+  body('email').isEmail(),
+  body('password').isString().isLength({min:6}),
+], (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  const { name, email, password } = req.body;
+  const passwordHash = bcrypt.hashSync(password, 10);
+  db.run('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)', [name, email, passwordHash, 'admin'], function(err){
+    if (err) {
+      if (err.message.includes('UNIQUE')) return res.status(409).json({ error: 'email_in_use' });
+      return res.status(500).json({ error: 'db_error', details: err.message });
+    }
+    const token = createToken({ id: this.lastID, name, email, role: 'admin' });
+    res.status(201).json({ token, user: { id: this.lastID, name, email, role: 'admin' } });
+  });
+});
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) { cb(null, UPLOAD_DIR); },
   filename: function (req, file, cb) {
@@ -244,15 +316,25 @@ app.post(
     body('message').isString().isLength({ min: 5 }),
     body('listingId').optional().isInt({ min: 1 })
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     const { name, email, phone, message, listingId } = req.body;
+    
     db.run(
       'INSERT INTO contacts (listing_id, name, email, phone, message) VALUES (?, ?, ?, ?, ?)',
       [listingId || null, name, email, phone || null, message],
-      function (err) {
+      async function (err) {
         if (err) return res.status(500).json({ error: 'db_error', details: err.message });
+        
+        // Send email notification
+        try {
+          await sendContactEmail({ name, email, phone, message, listingId });
+        } catch (emailError) {
+          console.error('Failed to send contact email:', emailError.message);
+          // Don't fail the request if email fails
+        }
+        
         res.status(201).json({ id: this.lastID });
       }
     );

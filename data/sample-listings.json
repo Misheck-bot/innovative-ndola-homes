@@ -1,0 +1,79 @@
+{
+  "listings": [
+    {
+      "title": "Luxury Villa in Northrise",
+      "description": "Stunning 6-bedroom villa with swimming pool, landscaped gardens, and panoramic views. Features include modern kitchen, marble floors, and 3-car garage.",
+      "price": 5500000,
+      "type": "sale",
+      "bedrooms": 6,
+      "bathrooms": 5,
+      "area": "Northrise",
+      "address": "House 123 Northrise Hills",
+      "owner_name": "Patricia Chilufya",
+      "owner_email": "patricia.chilufya@gmail.com",
+      "owner_phone": "+260966123789",
+      "latitude": -12.9450,
+      "longitude": 28.6180
+    },
+    {
+      "title": "Student Accommodation Near CBU",
+      "description": "Affordable 1-bedroom flat perfect for students. Furnished with bed, study desk, and kitchenette. Safe and secure environment.",
+      "price": 2800,
+      "type": "rent",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "area": "Riverside",
+      "address": "Block 7, CBU Student Village",
+      "owner_name": "Moses Katongo",
+      "owner_email": "moses.katongo@yahoo.com",
+      "owner_phone": "+260977654321",
+      "latitude": -12.9800,
+      "longitude": 28.6600
+    },
+    {
+      "title": "Family Home with Garden",
+      "description": "Cozy 3-bedroom house with large garden, perfect for families with children. Includes servant quarters and secure parking.",
+      "price": 1800000,
+      "type": "sale",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "area": "Kansenshi",
+      "address": "Plot 456 Kansenshi Extension",
+      "owner_name": "Emmanuel Mwila",
+      "owner_email": "e.mwila@outlook.com",
+      "owner_phone": "+260955987654",
+      "latitude": -12.9920,
+      "longitude": 28.6480
+    },
+    {
+      "title": "Modern Townhouse Rental",
+      "description": "Brand new 2-bedroom townhouse with modern amenities, air conditioning, and 24/7 security. Gated community with playground.",
+      "price": 8500,
+      "type": "rent",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "area": "Chipulukusu",
+      "address": "Unit 12 Chipulukusu Gardens",
+      "owner_name": "Rebecca Mubanga",
+      "owner_email": "rebecca.mubanga@gmail.com",
+      "owner_phone": "+260971876543",
+      "latitude": -12.9350,
+      "longitude": 28.6250
+    },
+    {
+      "title": "Industrial Warehouse Space",
+      "description": "Large warehouse facility suitable for manufacturing or storage. Includes office space, loading bay, and 24-hour security.",
+      "price": 12000000,
+      "type": "sale",
+      "bedrooms": 0,
+      "bathrooms": 2,
+      "area": "Industrial Area",
+      "address": "Plot 789 Industrial Road",
+      "owner_name": "Zambia Properties Ltd",
+      "owner_email": "info@zambiaproperties.com",
+      "owner_phone": "+260211234567",
+      "latitude": -12.9750,
+      "longitude": 28.6100
+    }
+  ]
+}
