@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Deployed Site - Ndola Homes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-section { background: white; margin: 20px 0; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-result { margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .loading { color: #666; font-style: italic; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .form-group { margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Deployed Site Debug Tool</h1>
+    <p>Testing all features on the deployed Netlify site...</p>
+
+    <div class="test-section">
+        <h2>1. API Health Check</h2>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <div id="health-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Search Functionality</h2>
+        <button onclick="testSearch()">Test Basic Search</button>
+        <button onclick="testSearchWithQuery()">Test Search with Query</button>
+        <div id="search-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Contact Form</h2>
+        <div class="form-group">
+            <input type="text" id="contact-name" placeholder="Your Name" value="Test User">
+            <input type="email" id="contact-email" placeholder="Your Email" value="test@example.com">
+            <input type="text" id="contact-phone" placeholder="Phone (optional)" value="+260977123456">
+            <textarea id="contact-message" placeholder="Your Message" rows="3">This is a test message from the debug tool.</textarea>
+        </div>
+        <button onclick="testContactForm()">Test Contact Form</button>
+        <div id="contact-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. User Registration</h2>
+        <div class="form-group">
+            <input type="text" id="reg-name" placeholder="Full Name" value="Test Admin">
+            <input type="email" id="reg-email" placeholder="Email" value="admin@test.com">
+            <input type="password" id="reg-password" placeholder="Password" value="testpass123">
+            <label><input type="checkbox" id="reg-admin"> Register as Admin</label>
+        </div>
+        <button onclick="testRegistration()">Test Registration</button>
+        <div id="registration-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Environment Check</h2>
+        <button onclick="checkEnvironment()">Check Environment Variables</button>
+        <div id="environment-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Network & CORS Check</h2>
+        <button onclick="testCORS()">Test CORS & Network</button>
+        <div id="cors-result"></div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="test-result ${type}">${content}</div>`;
+        }
+
+        function showLoading(elementId) {
+            showResult(elementId, '<div class="loading">Testing...</div>');
+        }
+
+        async function testHealth() {
+            showLoading('health-result');
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('health-result', `
+                        <h4>✅ Health Check Passed</h4>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, 'success');
+                } else {
+                    showResult('health-result', `
+                        <h4>❌ Health Check Failed</h4>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('health-result', `
+                    <h4>❌ Health Check Error</h4>
+                    <p>Error: ${error.message}</p>
+                    <p>This usually means the API endpoint is not accessible.</p>
+                `, 'error');
+            }
+        }
+
+        async function testSearch() {
+            showLoading('search-result');
+            try {
+                const response = await fetch(`${API_BASE}/listings`);
+                const data = await response.json();
+                
+                if (response.ok && data.items) {
+                    showResult('search-result', `
+                        <h4>✅ Search Working</h4>
+                        <p>Found ${data.total} properties</p>
+                        <p>Returned ${data.items.length} items</p>
+                        <details>
+                            <summary>Sample Data</summary>
+                            <pre>${JSON.stringify(data.items.slice(0, 2), null, 2)}</pre>
+                        </details>
+                    `, 'success');
+                } else {
+                    showResult('search-result', `
+                        <h4>❌ Search Failed</h4>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('search-result', `
+                    <h4>❌ Search Error</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        async function testSearchWithQuery() {
+            showLoading('search-result');
+            try {
+                const response = await fetch(`${API_BASE}/listings?q=house&type=sale`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult('search-result', `
+                        <h4>✅ Search with Query Working</h4>
+                        <p>Query: "house", Type: "sale"</p>
+                        <p>Found ${data.total} matching properties</p>
+                        <details>
+                            <summary>Results</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `, 'success');
+                } else {
+                    showResult('search-result', `
+                        <h4>❌ Search Query Failed</h4>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('search-result', `
+                    <h4>❌ Search Query Error</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        async function testContactForm() {
+            showLoading('contact-result');
+            try {
+                const formData = {
+                    name: document.getElementById('contact-name').value,
+                    email: document.getElementById('contact-email').value,
+                    phone: document.getElementById('contact-phone').value,
+                    message: document.getElementById('contact-message').value
+                };
+
+                const response = await fetch(`${API_BASE}/contact`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showResult('contact-result', `
+                        <h4>✅ Contact Form Working</h4>
+                        <p>Message: ${data.message}</p>
+                        <p>Form data was processed successfully.</p>
+                    `, 'success');
+                } else {
+                    showResult('contact-result', `
+                        <h4>❌ Contact Form Failed</h4>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('contact-result', `
+                    <h4>❌ Contact Form Error</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        async function testRegistration() {
+            showLoading('registration-result');
+            try {
+                const userData = {
+                    name: document.getElementById('reg-name').value,
+                    email: document.getElementById('reg-email').value + Math.random().toString(36).substr(2, 5), // Make email unique
+                    password: document.getElementById('reg-password').value,
+                    role: document.getElementById('reg-admin').checked ? 'admin' : 'user'
+                };
+
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    showResult('registration-result', `
+                        <h4>✅ Registration Working</h4>
+                        <p>User created with role: ${data.user.role}</p>
+                        <p>Token received: ${data.token.substring(0, 20)}...</p>
+                    `, 'success');
+                } else {
+                    showResult('registration-result', `
+                        <h4>❌ Registration Failed</h4>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `, 'error');
+                }
+            } catch (error) {
+                showResult('registration-result', `
+                    <h4>❌ Registration Error</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        async function checkEnvironment() {
+            showLoading('environment-result');
+            try {
+                // Test health endpoint to see what environment info we can get
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                showResult('environment-result', `
+                    <h4>🔍 Environment Info</h4>
+                    <p>Site Name: ${data.site || 'Not set'}</p>
+                    <p>Check Netlify dashboard for environment variables:</p>
+                    <ul>
+                        <li>EMAIL_USER - for contact form emails</li>
+                        <li>EMAIL_PASS - Gmail app password</li>
+                        <li>EMAIL_TO - recipient email (misheckmwamba99@gmail.com)</li>
+                        <li>JWT_SECRET - for authentication</li>
+                    </ul>
+                `, 'info');
+            } catch (error) {
+                showResult('environment-result', `
+                    <h4>❌ Environment Check Error</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        async function testCORS() {
+            showLoading('cors-result');
+            try {
+                const response = await fetch(`${API_BASE}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                };
+                
+                showResult('cors-result', `
+                    <h4>✅ CORS Check</h4>
+                    <p>Response Status: ${response.status}</p>
+                    <p>CORS Headers:</p>
+                    <pre>${JSON.stringify(corsHeaders, null, 2)}</pre>
+                `, 'success');
+            } catch (error) {
+                showResult('cors-result', `
+                    <h4>❌ CORS Error</h4>
+                    <p>Error: ${error.message}</p>
+                `, 'error');
+            }
+        }
+
+        // Auto-run health check on page load
+        window.onload = () => {
+            testHealth();
+        };
+    </script>
+</body>
+</html>

@@ -1,19 +1,20 @@
-const path = require('path');
+const path = require("path");
 const fs = require('fs');
 const http = require('http');
-const express = require('express');
+const express = require("express");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const { body, validationResult, query } = require('express-validator');
 const multer = require('multer');
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require('sqlite3');
 const nodemailer = require('nodemailer');
-require('dotenv').config();
+const { Server } = require('socket.io');
 
 const app = express();
+const __dirname = process.cwd();
 const server = http.createServer(app);
-const io = require('socket.io')(server, { cors: { origin: '*'} });
+const io = new Server(server, { cors: { origin: '*'} });
 
 const PORT = process.env.PORT || 3000;
 const DB_FILE = process.env.DB_FILE || path.join(__dirname, 'data', 'realestate.db');
@@ -22,7 +23,7 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, 'public', 'upl
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-const db = new sqlite3.Database(DB_FILE);
+const db = new sqlite3.verbose().Database(DB_FILE);
 
 // Email configuration
 const emailTransporter = nodemailer.createTransport({
@@ -131,7 +132,8 @@ db.run("ALTER TABLE listings ADD COLUMN owner_phone TEXT", () => {});
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/public', express.static(path.join(__dirname, 'public')));
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
 // Auth helpers
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 function createToken(payload){
@@ -413,6 +415,11 @@ app.get('/terms', (req, res) => {
 // Return current user from Authorization header
 app.get('/api/auth/me', authRequired, (req, res) => {
   res.json({ user: req.user });
+});
+
+// Client-side routing fallback - serve index.html for all non-API routes
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "client", "dist", "index.html"));
 });
 
 io.on('connection', (socket) => {

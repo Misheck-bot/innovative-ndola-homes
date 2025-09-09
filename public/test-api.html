@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test - Ndola Homes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Ndola Homes API Test</h1>
+    <button onclick="runTests()">Run API Tests</button>
+    <div id="results"></div>
+
+    <script>
+        async function runTests() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="info">Running tests...</div>';
+            
+            const tests = [];
+            
+            // Test 1: Health Check
+            try {
+                const healthRes = await fetch('/api/health');
+                const healthData = await healthRes.json();
+                tests.push({
+                    name: 'Health Check',
+                    success: healthRes.ok,
+                    status: healthRes.status,
+                    data: healthData
+                });
+            } catch (error) {
+                tests.push({
+                    name: 'Health Check',
+                    success: false,
+                    error: error.message
+                });
+            }
+            
+            // Test 2: Listings Endpoint
+            try {
+                const listingsRes = await fetch('/api/listings');
+                const listingsData = await listingsRes.json();
+                tests.push({
+                    name: 'Listings Endpoint',
+                    success: listingsRes.ok,
+                    status: listingsRes.status,
+                    data: listingsData
+                });
+            } catch (error) {
+                tests.push({
+                    name: 'Listings Endpoint',
+                    success: false,
+                    error: error.message
+                });
+            }
+            
+            // Test 3: Check if it's a CORS issue
+            try {
+                const corsRes = await fetch('/api/health', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                tests.push({
+                    name: 'CORS Test',
+                    success: corsRes.ok,
+                    status: corsRes.status,
+                    headers: Object.fromEntries(corsRes.headers.entries())
+                });
+            } catch (error) {
+                tests.push({
+                    name: 'CORS Test',
+                    success: false,
+                    error: error.message
+                });
+            }
+            
+            // Display results
+            results.innerHTML = tests.map(test => `
+                <div class="test-result ${test.success ? 'success' : 'error'}">
+                    <h3>${test.name}</h3>
+                    <p><strong>Status:</strong> ${test.success ? 'PASS' : 'FAIL'}</p>
+                    ${test.status ? `<p><strong>HTTP Status:</strong> ${test.status}</p>` : ''}
+                    ${test.error ? `<p><strong>Error:</strong> ${test.error}</p>` : ''}
+                    ${test.data ? `<pre><strong>Response:</strong>\n${JSON.stringify(test.data, null, 2)}</pre>` : ''}
+                    ${test.headers ? `<pre><strong>Headers:</strong>\n${JSON.stringify(test.headers, null, 2)}</pre>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // Auto-run tests on page load
+        window.onload = runTests;
+    </script>
+</body>
+</html>
