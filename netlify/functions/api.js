@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import path from "path";
 import fs from 'fs';
 import express from "express";
@@ -12,6 +13,8 @@ import serverless from 'serverless-http';
 
 const app = express();
 const __dirname = path.resolve();
+
+// Note: Static files are served by Netlify, not the serverless function
 
 // Database setup for serverless
 const DB_FILE = '/tmp/realestate.db';

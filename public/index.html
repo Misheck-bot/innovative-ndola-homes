@@ -76,7 +76,7 @@
                 </div>
             </div>
         </div>
-        <form id="searchForm" class="row g-3 justify-content-center">
+        <form id="searchForm" class="row g-3 justify-content-center" onsubmit="performRealTimeSearch(event)">
             <div class="col-12 col-md-3">
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -109,8 +109,8 @@
             </div>
             </div>
             <div class="col-6 col-md-2 d-grid">
-                <button class="btn btn-primary btn-lg" type="submit">
-                    <i class="fas fa-search me-2"></i>Search
+                <button class="btn btn-primary btn-lg" type="submit" id="searchBtn">
+                    <i class="fas fa-search me-2"></i>Search Now
                 </button>
             </div>
             <div class="col-6 col-md-2 d-grid">
@@ -193,12 +193,22 @@
             </div>
         </aside>
         <section class="col-lg-9">
+            <!-- Featured Property Images Section -->
+            <div class="row mb-4" id="featuredImages">
+                <div class="col-12">
+                    <h3 class="h5 mb-3">
+                        <i class="fas fa-images me-2 text-primary"></i>Featured Properties
+                    </h3>
+                </div>
+                <!-- Dynamic featured properties will be loaded here -->
+            </div>
+            
             <div id="resultsMeta" class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 id="listings" class="h4 m-0">
-                        <i class="fas fa-star me-2 text-warning"></i>Featured Listings
+                        <i class="fas fa-list me-2 text-warning"></i>All Listings
                     </h2>
-                    <p class="text-muted small mb-0">Discover your perfect home from our curated selection</p>
+                    <p class="text-muted small mb-0">Browse all available properties</p>
                 </div>
                 <div class="text-end">
                     <span id="totalCount" class="badge bg-primary fs-6"></span>
@@ -445,7 +455,7 @@ function renderListings(items){
     col.className = 'col-12 col-sm-6 col-lg-4';
     col.innerHTML = `
       <div class="card h-100 ${typeClass}">
-        ${thumb ? `<img src="${thumb}" class="card-img-top" alt="${item.title}">` : ''}
+        <img src='${item.thumbnail_url}' class='card-img-top' alt='${item.title}' style='height: 200px; object-fit: cover;'>
         <div class="card-body d-flex flex-column">
           <h5 class="card-title">${item.title}</h5>
           <p class="card-text small text-muted mb-1">
@@ -459,6 +469,13 @@ function renderListings(items){
             ${item.bedrooms ? `<span class='pill'><i class="fas fa-bed me-1"></i>${item.bedrooms} bed${item.bedrooms>1?'s':''}</span>` : ''}
             ${item.bathrooms ? `<span class='pill'><i class="fas fa-bath me-1"></i>${item.bathrooms} bath${item.bathrooms>1?'s':''}</span>` : ''}
           </div>
+          ${item.approval_status ? `
+          <div class="mb-2">
+            <small class="text-${item.approval_status === 'Approved' ? 'success' : item.approval_status === 'Rejected' ? 'danger' : 'warning'}">
+              <i class="fas fa-${item.approval_status === 'Approved' ? 'check-circle' : item.approval_status === 'Rejected' ? 'times-circle' : 'clock'} me-1"></i>${item.approval_status}
+            </small>
+          </div>
+          ` : ''}
           <div class="mt-auto d-flex justify-content-between align-items-center">
             <a class="btn btn-outline-primary btn-sm" href="#" data-id="${item.id}" onclick="viewDetails(${item.id});return false;">
               <i class="fas fa-eye me-1"></i>View Details
@@ -478,70 +495,81 @@ async function loadListings(params){
   try {
     console.log('Loading listings with params:', params);
     
-    // Test API health first
-    try {
-      const healthRes = await fetch('/api/health');
-      console.log('Health check response:', healthRes.status, healthRes.statusText);
-      if (healthRes.ok) {
-        const healthData = await healthRes.json();
-        console.log('Health check data:', healthData);
+    const queryParams = new URLSearchParams();
+    Object.keys(params).forEach(key => {
+      if (params[key]) {
+        queryParams.append(key, params[key]);
       }
-    } catch (healthError) {
-      console.error('Health check failed:', healthError);
+    });
+    
+    const url = `/api/listings${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    console.log('Fetching from URL:', url);
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
-    const res = await api('/api/listings', params);
+    const data = await response.json();
+    console.log('API Response:', data);
     
-    if (!res.ok) {
-      console.error('API response not ok:', res.status, res.statusText);
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    }
+    const listings = data.items || data || [];
+    console.log('Processed listings:', listings);
     
-    const data = await res.json();
-    console.log('API response data:', data);
-    
-    if (!data || typeof data !== 'object') {
-      console.error('Invalid response format:', data);
-      throw new Error('Invalid response format');
-    }
-    
-    if (!data.items || !Array.isArray(data.items)) {
-      console.error('No items array in response:', data);
-      totalCount.textContent = '0 properties found';
-      renderListings([]);
-      return;
-    }
-    
-    totalCount.textContent = (data.total || data.items.length) + ' properties found';
-    renderListings(data.items);
+    renderListings(listings);
   } catch (error) {
     console.error('Error loading listings:', error);
-    totalCount.textContent = 'Error loading properties';
-    document.getElementById('listingsContainer').innerHTML = `
-      <div class="col-12 text-center">
-        <div class="alert alert-danger">
-          <h5>Error Loading Properties</h5>
-          <p>Unable to load property listings. Please try again later.</p>
-          <small>Error: ${error.message}</small>
-        </div>
-      </div>
-    `;
+    renderError(error);
   }
 }
 
 async function viewDetails(id){
-  const res = await fetch('/api/listings/' + id);
-  const item = await res.json();
-  const media = item.media || [];
-  const gallery = media.map(m => m.kind === 'video' ? `<video controls class='w-100 my-1'><source src='${m.url}'></video>` : `<img class='img-fluid my-1' src='${m.url}'>`).join('');
+  try {
+    showNotification('Loading property details...', 'info');
+    const res = await fetch('/api/listings/' + id);
+    
+    if (!res.ok) {
+      throw new Error(`Property not found (${res.status})`);
+    }
+    
+    const item = await res.json();
+    console.log('Property details loaded:', item);
+    
+    // Handle photos and videos
+    const media = item.media || [];
+    let gallery = '';
+    
+    // Add thumbnail if available
+    if (item.thumbnail_url) {
+      gallery += `<div class="mb-3">
+        <img class="img-fluid rounded" src="${item.thumbnail_url}" alt="${item.title}" style="max-height: 400px; width: 100%; object-fit: cover;">
+      </div>`;
+    }
+    
+    // Add additional media
+    gallery += media.map(m => {
+      if (m.kind === 'video') {
+        return `<div class="mb-3">
+          <video controls class="w-100 rounded" style="max-height: 400px;">
+            <source src="${m.url}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>`;
+      } else {
+        return `<div class="mb-3">
+          <img class="img-fluid rounded" src="${m.url}" alt="Property photo" style="max-height: 400px; width: 100%; object-fit: cover;">
+        </div>`;
+      }
+    }).join('');
+    
+    const isRent = item.type === 'rent';
+    const priceClass = isRent ? 'price-rent' : 'price-sale';
+    const badgeClass = isRent ? 'property-type-rent' : 'property-type-sale';
+    const typeIcon = isRent ? 'fas fa-key' : 'fas fa-home';
+    const priceLabel = isRent ? '/month' : '';
   
-  const isRent = item.type === 'rent';
-  const priceClass = isRent ? 'price-rent' : 'price-sale';
-  const badgeClass = isRent ? 'property-type-rent' : 'property-type-sale';
-  const typeIcon = isRent ? 'fas fa-key' : 'fas fa-home';
-  const priceLabel = isRent ? '/month' : '';
-  
-  const html = `
+    const html = `
     <div class='modal fade' id='listingModal' tabindex='-1'>
       <div class='modal-dialog modal-lg modal-dialog-scrollable'>
         <div class='modal-content'>
@@ -610,6 +638,10 @@ async function viewDetails(id){
   const modal = new bootstrap.Modal(wrapper.querySelector('#listingModal'));
   modal.show();
   wrapper.addEventListener('hidden.bs.modal', () => wrapper.remove());
+  } catch (error) {
+    console.error('Error loading property details:', error);
+    showNotification('Failed to load property details: ' + error.message, 'danger');
+  }
 }
 
 function contactOwner(listingId){
@@ -703,44 +735,25 @@ document.getElementById('contactForm').addEventListener('submit', async (e)=>{
 });
 
 skeletonCards();
-loadListings();
+// Initialize real-time search functionality
+setupRealTimeSearch();
+// Load featured properties and initial listings
+loadFeaturedProperties();
+loadListings({});
 
 const socket = io();
 const liveFeed = document.getElementById('liveFeed');
 // Add favorite functionality
-function toggleFavorite(id) {
+function toggleFavorite(id){
   const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
   const index = favorites.indexOf(id);
-  
   if (index > -1) {
     favorites.splice(index, 1);
-    showNotification('Removed from favorites', 'info');
   } else {
     favorites.push(id);
-    showNotification('Added to favorites', 'success');
   }
-  
   localStorage.setItem('favorites', JSON.stringify(favorites));
-  updateFavoriteButtons();
-}
-
-function updateFavoriteButtons() {
-  const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-  document.querySelectorAll('[onclick*="toggleFavorite"]').forEach(btn => {
-    const id = parseInt(btn.getAttribute('onclick').match(/\d+/)[0]);
-    const icon = btn.querySelector('i');
-    if (favorites.includes(id)) {
-      icon.classList.remove('far');
-      icon.classList.add('fas');
-      btn.classList.remove('btn-outline-danger');
-      btn.classList.add('btn-danger');
-    } else {
-      icon.classList.remove('fas');
-      icon.classList.add('far');
-      btn.classList.remove('btn-danger');
-      btn.classList.add('btn-outline-danger');
-    }
-  });
+  showNotification(index > -1 ? 'Removed from favorites' : 'Added to favorites', 'info');
 }
 
 function showNotification(message, type = 'info') {
@@ -757,12 +770,213 @@ function showNotification(message, type = 'info') {
     if (notification.parentNode) {
       notification.remove();
     }
-  }, 3000);
+  }, 5000);
+}
+
+// Real-time search functionality
+function setupRealTimeSearch() {
+  const searchInput = document.getElementById('q');
+  const typeSelect = document.getElementById('type');
+  const minPriceInput = document.getElementById('minPrice');
+  const maxPriceInput = document.getElementById('maxPrice');
+  const bedroomsInput = document.getElementById('bedrooms');
+  
+  // Real-time search as user types
+  let searchTimeout;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      performRealTimeSearch();
+    }, 500); // Wait 500ms after user stops typing
+  });
+  
+  // Instant search on filter changes
+  [typeSelect, minPriceInput, maxPriceInput, bedroomsInput].forEach(element => {
+    element.addEventListener('change', performRealTimeSearch);
+  });
+}
+
+function performRealTimeSearch(event) {
+  if (event) event.preventDefault();
+  
+  const searchBtn = document.getElementById('searchBtn');
+  const originalText = searchBtn.innerHTML;
+  searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
+  
+  const params = {
+    q: document.getElementById('q').value,
+    type: document.getElementById('type').value,
+    minPrice: document.getElementById('minPrice').value,
+    maxPrice: document.getElementById('maxPrice').value,
+    bedrooms: document.getElementById('bedrooms').value
+  };
+  
+  // Add location if available
+  if (window.__geo) {
+    params.latitude = window.__geo.latitude;
+    params.longitude = window.__geo.longitude;
+    params.radiusKm = document.getElementById('radius').value;
+  }
+  
+  console.log('Real-time search with params:', params);
+  
+  loadListings(params).then(() => {
+    searchBtn.innerHTML = originalText;
+    
+    // Show search feedback
+    const query = params.q || 'all properties';
+    const filters = [];
+    if (params.type) filters.push(`type: ${params.type}`);
+    if (params.minPrice) filters.push(`min: ZMW ${params.minPrice}`);
+    if (params.maxPrice) filters.push(`max: ZMW ${params.maxPrice}`);
+    if (params.bedrooms) filters.push(`${params.bedrooms}+ beds`);
+    
+    const filterText = filters.length ? ` (${filters.join(', ')})` : '';
+    showNotification(`Search completed for "${query}"${filterText}`, 'success');
+  }).catch(() => {
+    searchBtn.innerHTML = originalText;
+    showNotification('Search failed. Please try again.', 'danger');
+  });
+}
+
+// Load featured properties dynamically from real API data
+async function loadFeaturedProperties() {
+  try {
+    console.log('Loading featured properties from API...');
+    const response = await fetch('/api/listings?limit=10');
+    
+    if (!response.ok) {
+      throw new Error(`API responded with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('API Response:', data);
+    
+    const featuredContainer = document.getElementById('featuredImages');
+    
+    if (!data.items || data.items.length === 0) {
+      featuredContainer.innerHTML = `
+        <div class="col-12 text-center py-5">
+          <h5>No Properties Available</h5>
+          <p>Check back later for new listings.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // Prioritize properties with images, fallback to any properties
+    const propertiesWithImages = data.items.filter(item => item.thumbnail_url);
+    const propertiesToShow = propertiesWithImages.length >= 2 ? propertiesWithImages.slice(0, 2) : data.items.slice(0, 2);
+    
+    let featuredHTML = `
+      <div class="col-12 mb-4">
+        <h3 class="text-center">Featured Properties</h3>
+        <p class="text-center text-muted">Discover amazing properties in Ndola</p>
+      </div>
+    `;
+    
+    propertiesToShow.forEach(property => {
+      featuredHTML += createFeaturedPropertyCard(property, 'col-md-6');
+    });
+    
+    featuredContainer.innerHTML = featuredHTML;
+    
+    console.log('Featured properties loaded successfully');
+  } catch (error) {
+    console.error('Error loading featured properties:', error);
+    const featuredContainer = document.getElementById('featuredImages');
+    featuredContainer.innerHTML = `
+      <div class="col-12 text-center py-5">
+        <div class="alert alert-warning">
+          <h5>Error Loading Featured Properties</h5>
+          <p>Unable to load featured listings. Please try again later.</p>
+          <small>Error: ${error.message}</small>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// Create featured property card HTML with real data
+function createFeaturedPropertyCard(property, colClass) {
+  console.log('Creating card for property:', property);
+  
+  const isRent = property.type === 'rent';
+  const priceLabel = isRent ? '/month' : '';
+  const badgeClass = isRent ? 'bg-info' : 'bg-success';
+  const badgeText = isRent ? 'FOR RENT' : 'FOR SALE';
+  const priceColor = isRent ? 'text-primary' : 'text-success';
+  
+  const approvalStatusColor = property.approval_status === 'Approved' ? 'success' : 
+                             property.approval_status === 'Rejected' ? 'danger' : 'warning';
+  const approvalIcon = property.approval_status === 'Approved' ? 'check-circle' : 
+                      property.approval_status === 'Rejected' ? 'times-circle' : 'clock';
+  
+  // Debug image path
+  const imagePath = property.thumbnail_url;
+  console.log('Image path for property', property.id, ':', imagePath);
+  
+  return `
+    <div class="${colClass} mb-3">
+      <div class="card border-0 shadow-sm" style="cursor: pointer;" onclick="viewDetails(${property.id})">
+        ${imagePath ? 
+          `<img src="${imagePath}" class="card-img-top" alt="${property.title}" style="height: 200px; object-fit: cover;" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg=='; console.log('Image failed to load:', '${imagePath}');">` : 
+          `<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+             <i class="fas fa-home text-muted" style="font-size: 3rem;"></i>
+             <div class="position-absolute bottom-0 end-0 p-2">
+               <small class="badge bg-secondary">No Image</small>
+             </div>
+           </div>`
+        }
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0">${property.title}</h6>
+            <small class="badge bg-secondary">ID: ${property.id}</small>
+          </div>
+          <p class="card-text small text-muted mb-2">
+            <i class="fas fa-map-marker-alt me-1"></i>${property.area ? property.area + ', ' : ''}${property.city}
+          </p>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="${priceColor} fw-bold">ZMW ${Number(property.price).toLocaleString()}${priceLabel}</span>
+            <span class="badge ${badgeClass}">${badgeText}</span>
+          </div>
+          ${property.approval_status ? `
+          <div class="mb-2">
+            <small class="text-${approvalStatusColor}">
+              <i class="fas fa-${approvalIcon} me-1"></i>${property.approval_status}
+            </small>
+          </div>
+          ` : ''}
+          ${property.local_authority ? `
+          <div class="mb-2">
+            <small class="text-info">
+              <i class="fas fa-building me-1"></i>${property.local_authority}
+            </small>
+          </div>
+          ` : ''}
+          ${property.bedrooms || property.bathrooms ? `
+          <div class="mb-2">
+            <small class="text-muted">
+              ${property.bedrooms ? `<i class="fas fa-bed me-1"></i>${property.bedrooms} bed${property.bedrooms > 1 ? 's' : ''}` : ''}
+              ${property.bedrooms && property.bathrooms ? ' • ' : ''}
+              ${property.bathrooms ? `<i class="fas fa-bath me-1"></i>${property.bathrooms} bath${property.bathrooms > 1 ? 's' : ''}` : ''}
+            </small>
+          </div>
+          ` : ''}
+          <div class="text-end">
+            <small class="text-muted">Click to view details</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 socket.on('listing:new', (payload)=>{
   liveFeed.innerHTML = '<i class="fas fa-bell me-1"></i>New listing added! Click search to refresh.';
   showNotification('New property listing available!', 'success');
+  // Reload featured properties when new listing is added
+  loadFeaturedProperties();
 });
 
 // "Near me" location button

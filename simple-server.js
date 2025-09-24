@@ -8,6 +8,9 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
 
+// Load environment variables from .env in local development
+require('dotenv').config();
+
 const app = express();
 const PORT = 3000;
 

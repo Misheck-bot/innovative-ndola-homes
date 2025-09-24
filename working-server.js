@@ -6,6 +6,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+
+// Load environment variables from .env in local development
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
@@ -33,6 +37,14 @@ let listings = [
     owner_phone: "+260977123456",
     latitude: -12.9584,
     longitude: 28.6369,
+    local_authority: "Ndola City Council",
+    approval_status: "Approved",
+    legal_representative: "Mwamba & Associates Law Firm",
+    legal_contact: "+260977654321",
+    ownership_guarantee: "Title Deed Verified",
+    security_details: "Registered with Ministry of Lands",
+    thumbnail_url: "/northrise.jpg",
+    media: [],
     created_at: new Date().toISOString()
   },
   {
@@ -50,6 +62,14 @@ let listings = [
     owner_phone: "+260966789012",
     latitude: -12.9700,
     longitude: 28.6200,
+    local_authority: "Ndola City Council",
+    approval_status: "Pending",
+    legal_representative: "Banda Legal Services",
+    legal_contact: "+260966123456",
+    ownership_guarantee: "Lease Agreement Verified",
+    security_details: "Landlord Registration Complete",
+    thumbnail_url: "/kanseshi.jpg",
+    media: [],
     created_at: new Date().toISOString()
   },
   {
@@ -62,11 +82,19 @@ let listings = [
     bathrooms: 4,
     city: "Ndola",
     area: "Riverside",
-    address: "House 23, Riverside Estate",
+    address: "Plot 45, Riverside Drive",
     owner_name: "David Phiri",
     owner_phone: "+260955456789",
     latitude: -12.9500,
     longitude: 28.6100,
+    local_authority: "Ndola City Council",
+    approval_status: "Approved",
+    legal_representative: "Phiri & Partners Law Chambers",
+    legal_contact: "+260955987654",
+    ownership_guarantee: "Certificate of Title Verified",
+    security_details: "Surveyor General Approved",
+    thumbnail_url: "/Riverside.jpg",
+    media: [],
     created_at: new Date().toISOString()
   },
   {
@@ -84,6 +112,14 @@ let listings = [
     owner_phone: "+260933456789",
     latitude: -12.9800,
     longitude: 28.6300,
+    local_authority: "Ndola City Council",
+    approval_status: "Approved",
+    legal_representative: "Mulenga Law Firm",
+    legal_contact: "+260933789456",
+    ownership_guarantee: "Title Deed Original Available",
+    security_details: "Ministry of Lands Registered",
+    thumbnail_url: "/Chipulukusu.jpg",
+    media: [],
     created_at: new Date().toISOString()
   },
   {
@@ -101,6 +137,14 @@ let listings = [
     owner_phone: "+260944567890",
     latitude: -12.9650,
     longitude: 28.6350,
+    local_authority: "Ndola City Council",
+    approval_status: "Approved",
+    legal_representative: "Tembo Legal Consultants",
+    legal_contact: "+260944890567",
+    ownership_guarantee: "Rental License Verified",
+    security_details: "Property Management Registered",
+    thumbnail_url: "/City Center.jpg",
+    media: [],
     created_at: new Date().toISOString()
   }
 ];
@@ -120,8 +164,56 @@ const emailTransporter = nodemailer.createTransport({
   }
 });
 
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'public', 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept images and videos
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image and video files are allowed!'), false);
+    }
+  }
+});
+
 // Auth helpers
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
+
+// Auth middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid or expired token' });
+    }
+    req.user = user;
+    next();
+  });
+};
 
 // API Routes
 app.get('/api/health', (req, res) => {
@@ -173,7 +265,7 @@ app.get('/api/listings', (req, res) => {
   console.log(`Search query: "${q || 'all'}", found ${total} results, returning ${paginatedListings.length}`);
   
   res.json({ 
-    items: paginatedListings.map(listing => ({ ...listing, media: [] })), 
+    items: paginatedListings, 
     total: total 
   });
 });
@@ -186,7 +278,7 @@ app.get('/api/listings/:id', (req, res) => {
     return res.status(404).json({ error: 'Listing not found' });
   }
   
-  res.json({ ...listing, media: [] });
+  res.json(listing);
 });
 
 app.post('/api/auth/register', [
@@ -260,6 +352,94 @@ app.post('/api/auth/login', [
   });
 });
 
+// Get current user info (for authentication verification)
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+  const user = users.find(u => u.id === req.user.id);
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+  
+  res.json({ 
+    user: { 
+      id: user.id, 
+      name: user.name, 
+      email: user.email, 
+      role: user.role 
+    } 
+  });
+});
+
+// Create new listing (protected route)
+app.post('/api/listings', authenticateToken, upload.array('media', 10), (req, res) => {
+  // Check if user has permission to create listings
+  if (!['admin', 'agent'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions' });
+  }
+
+  const {
+    title, description, price, type, bedrooms, bathrooms,
+    city, area, address, owner_name, owner_email, owner_phone,
+    latitude, longitude, local_authority, approval_status,
+    legal_representative, legal_contact, ownership_guarantee, security_details
+  } = req.body;
+
+  // Basic validation
+  if (!title || !description || !price || !type) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Process uploaded media files
+  const mediaFiles = [];
+  if (req.files && req.files.length > 0) {
+    req.files.forEach(file => {
+      mediaFiles.push({
+        url: `/uploads/${file.filename}`,
+        type: file.mimetype.startsWith('video/') ? 'video' : 'image',
+        filename: file.filename,
+        originalName: file.originalname,
+        size: file.size
+      });
+    });
+  }
+
+  const newListing = {
+    id: nextListingId++,
+    title,
+    description,
+    price: Number(price),
+    type,
+    bedrooms: Number(bedrooms) || 0,
+    bathrooms: Number(bathrooms) || 0,
+    city: city || 'Ndola',
+    area: area || '',
+    address: address || '',
+    owner_name: owner_name || '',
+    owner_email: owner_email || '',
+    owner_phone: owner_phone || '',
+    latitude: latitude ? Number(latitude) : null,
+    longitude: longitude ? Number(longitude) : null,
+    local_authority: local_authority || '',
+    approval_status: approval_status || 'Pending',
+    legal_representative: legal_representative || '',
+    legal_contact: legal_contact || '',
+    ownership_guarantee: ownership_guarantee || '',
+    security_details: security_details || '',
+    thumbnail_url: mediaFiles.length > 0 ? mediaFiles[0].url : '',
+    media: mediaFiles,
+    created_at: new Date().toISOString(),
+    created_by: req.user.id
+  };
+
+  listings.push(newListing);
+  
+  console.log(`New listing created: ${title} by user ${req.user.email}`);
+  
+  res.status(201).json({ 
+    success: true, 
+    listing: newListing 
+  });
+});
+
 app.post('/api/contact', [
   body('name').isString().isLength({min:2}),
   body('email').isEmail(),
@@ -307,6 +487,16 @@ app.post('/api/contact', [
   }
 });
 
+// Route to serve admin page
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Route to serve property listing page
+app.get('/property', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'property.html'));
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
@@ -316,4 +506,6 @@ app.listen(PORT, () => {
   console.log(`   - Health: http://localhost:${PORT}/api/health`);
   console.log(`   - Listings: http://localhost:${PORT}/api/listings`);
   console.log(`   - Website: http://localhost:${PORT}`);
+  console.log(`   - Admin: http://localhost:${PORT}/admin`);
+  console.log(`   - Property: http://localhost:${PORT}/property`);
 });

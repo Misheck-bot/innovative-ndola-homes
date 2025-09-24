@@ -11,6 +11,9 @@ const sqlite3 = require('sqlite3');
 const nodemailer = require('nodemailer');
 const { Server } = require('socket.io');
 
+// Load environment variables from .env in local development
+require('dotenv').config();
+
 const app = express();
 const __dirname = process.cwd();
 const server = http.createServer(app);

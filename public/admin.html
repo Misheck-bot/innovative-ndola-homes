@@ -97,7 +97,78 @@
               <textarea class="form-control" name="description" placeholder="Describe the property features, amenities, and what makes it special..." rows="4" required></textarea>
             </div>
             <div class="col-12">
-              <h6 class="mt-2">Owner / Agent Details</h6>
+              <h6 class="mt-2">Legal & Approval Information</h6>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Local Authority (Council)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-building"></i></span>
+                <select class="form-select" name="local_authority">
+                  <option value="">Select Council</option>
+                  <option value="Ndola City Council" selected>Ndola City Council</option>
+                  <option value="Kitwe City Council">Kitwe City Council</option>
+                  <option value="Lusaka City Council">Lusaka City Council</option>
+                  <option value="Livingstone City Council">Livingstone City Council</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Approval Status</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                <select class="form-select" name="approval_status">
+                  <option value="Pending">Pending Approval</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Under Review">Under Review</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Legal Representative (Lawyer/Law Firm)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-gavel"></i></span>
+                <input class="form-control" name="legal_representative" placeholder="e.g., Mwamba & Associates Law Firm">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Legal Contact</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                <input class="form-control" name="legal_contact" placeholder="+260 ...">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Ownership Guarantee</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-certificate"></i></span>
+                <select class="form-select" name="ownership_guarantee">
+                  <option value="">Select Guarantee Type</option>
+                  <option value="Title Deed Verified">Title Deed Verified</option>
+                  <option value="Certificate of Title Verified">Certificate of Title Verified</option>
+                  <option value="Lease Agreement Verified">Lease Agreement Verified</option>
+                  <option value="Rental License Verified">Rental License Verified</option>
+                  <option value="Under Verification">Under Verification</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Security Details</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
+                <select class="form-select" name="security_details">
+                  <option value="">Select Security Status</option>
+                  <option value="Registered with Ministry of Lands">Registered with Ministry of Lands</option>
+                  <option value="Surveyor General Approved">Surveyor General Approved</option>
+                  <option value="Property Management Registered">Property Management Registered</option>
+                  <option value="Landlord Registration Complete">Landlord Registration Complete</option>
+                  <option value="Pending Registration">Pending Registration</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-12">
+              <h6 class="mt-3">Owner / Agent Details</h6>
             </div>
             <div class="col-md-4">
               <label class="form-label">Owner/Agent Name</label>
@@ -213,11 +284,15 @@
             </li>
             <li class="mb-2">
               <i class="fas fa-check text-success me-2"></i>
-              Include all amenities
+              Verify legal documentation
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              Ensure council approval
             </li>
             <li>
               <i class="fas fa-check text-success me-2"></i>
-              Set competitive pricing
+              Provide ownership guarantee
             </li>
           </ul>
         </div>
